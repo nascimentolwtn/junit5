@@ -52,7 +52,8 @@ class SummaryGenerationTests {
 			() -> assertTrue(summaryString.contains("0 tests started"), "tests started"), //
 			() -> assertTrue(summaryString.contains("0 tests aborted"), "tests aborted"), //
 			() -> assertTrue(summaryString.contains("0 tests successful"), "tests successful"), //
-			() -> assertTrue(summaryString.contains("0 tests failed"), "tests failed") //
+			() -> assertTrue(summaryString.contains("0 tests failed"), "tests failed"), //
+			() -> assertTrue(summaryString.contains("0 containers failed"), "containers failed") //
 		);
 
 		assertEquals("", failuresAsString());
@@ -82,12 +83,15 @@ class SummaryGenerationTests {
 			() -> assertTrue(summaryString.contains("3 tests started"), "tests started"), //
 			() -> assertTrue(summaryString.contains("1 tests aborted"), "tests aborted"), //
 			() -> assertTrue(summaryString.contains("1 tests successful"), "tests successful"), //
-			() -> assertTrue(summaryString.contains("1 tests failed"), "tests failed") //
+			() -> assertTrue(summaryString.contains("1 tests failed"), "tests failed"), //
+			() -> assertTrue(summaryString.contains("0 containers failed"), "containers failed") //
 		);
 	}
 
 	@Test
 	void reportingCorrectFailures() throws Exception {
+		RuntimeException failedException = new RuntimeException("failed");
+
 		TestDescriptorStub testDescriptor = new TestDescriptorStub(UniqueId.root("root", "2"), "failingTest") {
 
 			@Override
@@ -100,7 +104,7 @@ class SummaryGenerationTests {
 
 		listener.testPlanExecutionStarted(testPlan);
 		listener.executionStarted(failed);
-		listener.executionFinished(failed, TestExecutionResult.failed(new RuntimeException("failed")));
+		listener.executionFinished(failed, TestExecutionResult.failed(failedException));
 		listener.executionStarted(aborted);
 		listener.executionFinished(aborted, TestExecutionResult.aborted(new RuntimeException("aborted")));
 		listener.testPlanExecutionFinished(testPlan);
@@ -110,10 +114,10 @@ class SummaryGenerationTests {
 
 		String failuresString = failuresAsString();
 		assertAll("failures", //
-			() -> assertTrue(failuresString.contains("Test failures (1)"), "test failures"), //
+			() -> assertTrue(failuresString.contains("Failures (1)"), "test failures"), //
 			() -> assertTrue(failuresString.contains(Object.class.getName()), "source"), //
 			() -> assertTrue(failuresString.contains("failingTest"), "display name"), //
-			() -> assertTrue(failuresString.contains("=> Exception: failed"), "exception") //
+			() -> assertTrue(failuresString.contains("=> " + failedException), "exception") //
 		);
 	}
 

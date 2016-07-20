@@ -13,6 +13,7 @@ package org.junit.platform.engine.discovery;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.junit.platform.commons.meta.API.Usage.Deprecated;
 import static org.junit.platform.commons.meta.API.Usage.Experimental;
 
 import java.io.File;
@@ -105,6 +106,34 @@ public final class DiscoverySelectors {
 	}
 
 	/**
+	 * Create a {@code MethodSelector} for the supplied <em>fully qualified
+	 * method name</em>.
+	 *
+	 * <p>The supported format for a <em>fully qualified method name</em> is
+	 * {@code [fully qualified class name]#[methodName]}. For example, the
+	 * fully qualified name for the {@code chars()} method in
+	 * {@code java.lang.String} is {@code "java.lang.String#chars"}.
+	 *
+	 * <p><strong>WARNING</strong>: Overloaded methods and methods that accept
+	 * arguments are not currently supported.
+	 *
+	 * @param name the fully qualified name of the method to select; never
+	 * {@code null} or blank
+	 * @throws PreconditionViolationException if the supplied name is {@code null},
+	 * blank, or does not specify a unique method
+	 * @see MethodSelector
+	 */
+	public static MethodSelector selectMethod(String name) throws PreconditionViolationException {
+		Preconditions.notBlank(name, "name must not be null or blank");
+
+		Optional<Method> methodOptional = ReflectionUtils.loadMethod(name);
+		Method method = methodOptional.orElseThrow(() -> new PreconditionViolationException(
+			String.format("'%s' could not be resolved to a unique method", name)));
+
+		return selectMethod(method.getDeclaringClass(), method);
+	}
+
+	/**
 	 * Create a {@code MethodSelector} for the supplied class name and method name.
 	 *
 	 * @param className the fully qualified name of the class in which the method
@@ -168,9 +197,15 @@ public final class DiscoverySelectors {
 	 * {@link PackageSelector}
 	 * @throws PreconditionViolationException if the supplied name is {@code null},
 	 * blank, or does not specify a class, method, or package
-	 * @see #selectNames(String...)
-	 * @see #selectNames(Collection)
+	 * @see #selectPackage(String)
+	 * @see #selectClass(String)
+	 * @see #selectMethod(String)
+	 * @deprecated This method will be removed in 5.0 M3; use
+	 * {@link #selectPackage(String)}, {@link #selectClass(String)}, or
+	 * {@link #selectMethod(String)} instead.
 	 */
+	@Deprecated
+	@API(Deprecated)
 	public static DiscoverySelector selectName(String name) throws PreconditionViolationException {
 		Preconditions.notBlank(name, "name must not be null or blank");
 
@@ -203,9 +238,15 @@ public final class DiscoverySelectors {
 	 * @param names the names to select; never {@code null}
 	 * @return a list of {@code DiscoverySelectors} for the supplied names;
 	 * potentially empty
-	 * @see #selectName(String)
-	 * @see #selectNames(Collection)
+	 * @see #selectPackage(String)
+	 * @see #selectClass(String)
+	 * @see #selectMethod(String)
+	 * @deprecated This method will be removed in 5.0 M3; use
+	 * {@link #selectPackage(String)}, {@link #selectClass(String)}, or
+	 * {@link #selectMethod(String)} instead.
 	 */
+	@Deprecated
+	@API(Deprecated)
 	public static List<DiscoverySelector> selectNames(String... names) {
 		Preconditions.notNull(names, "names array must not be null");
 		if (names.length == 0) {
@@ -224,9 +265,15 @@ public final class DiscoverySelectors {
 	 * @param names the names to select; never {@code null}
 	 * @return a list of {@code DiscoverySelectors} for the supplied names;
 	 * potentially empty
-	 * @see #selectName(String)
-	 * @see #selectNames(String...)
+	 * @see #selectPackage(String)
+	 * @see #selectClass(String)
+	 * @see #selectMethod(String)
+	 * @deprecated This method will be removed in 5.0 M3; use
+	 * {@link #selectPackage(String)}, {@link #selectClass(String)}, or
+	 * {@link #selectMethod(String)} instead.
 	 */
+	@Deprecated
+	@API(Deprecated)
 	public static List<DiscoverySelector> selectNames(Collection<String> names) {
 		Preconditions.notNull(names, "names collection must not be null");
 		return names.stream().map(DiscoverySelectors::selectName).collect(toList());
